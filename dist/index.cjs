@@ -50235,6 +50235,35 @@ router2.delete("/orders/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete order" });
   }
 });
+router2.patch("/orders/:id/cancel", async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid order ID" });
+    return;
+  }
+  try {
+    const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+    if (!order) {
+      res.status(404).json({ error: "Order not found" });
+      return;
+    }
+    const orderTime = new Date(order.createdAt).getTime();
+    const now = Date.now();
+    const threeHours = 3 * 60 * 60 * 1e3;
+    if (now - orderTime > threeHours) {
+      res.status(400).json({ error: "Cancellation window has expired. Orders can only be cancelled within 3 hours." });
+      return;
+    }
+    if (order.status === "shipped" || order.status === "delivered") {
+      res.status(400).json({ error: "Order cannot be cancelled as it has already been shipped." });
+      return;
+    }
+    const [updated] = await db.update(ordersTable).set({ status: "cancelled" }).where(eq(ordersTable.id, id)).returning();
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to cancel order" });
+  }
+});
 var orders_default = router2;
 
 // src/routes/index.ts
