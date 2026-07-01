@@ -1,0 +1,1 @@
+import { build } from "esbuild"; await build({ entryPoints: ["src/index.ts"], bundle: true, platform: "node", format: "esm", outfile: "dist/index.mjs", external: ["pg", "pg-native", "pino", "pino-http", "pino-pretty", "thread-stream", "drizzle-orm"], sourcemap: true });
