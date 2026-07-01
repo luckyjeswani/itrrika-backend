@@ -1,1 +1,1 @@
-import { build } from "esbuild"; await build({ entryPoints: ["src/index.ts"], bundle: true, platform: "node", format: "esm", outfile: "dist/index.mjs", external: ["pino", "pino-http", "pino-pretty", "thread-stream"], sourcemap: true });
+import { build } from "esbuild"; await build({ entryPoints: ["src/index.ts"], bundle: true, platform: "node", format: "cjs", outfile: "dist/index.mjs", external: ["pg", "pg-native"], sourcemap: true });
