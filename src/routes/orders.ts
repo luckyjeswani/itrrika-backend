@@ -60,5 +60,28 @@ router.patch("/orders/:id/status", async (req, res) => {
     res.status(500).json({ error: "Failed to update status" });
   }
 });
-
+router.delete("/orders/:id", async (req, res) => {
+  if (req.query.adminKey !== ADMIN_KEY) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid order ID" });
+    return;
+  }
+  try {
+    const [deleted] = await db
+      .delete(ordersTable)
+      .where(eq(ordersTable.id, id))
+      .returning();
+    if (!deleted) {
+      res.status(404).json({ error: "Order not found" });
+      return;
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete order" });
+  }
+});
 export default router;
