@@ -1,3 +1,4 @@
+import { sendOrderConfirmation } from "../lib/email.js";
 import { Router, type IRouter } from "express";
 import { db, insertOrderSchema, ordersTable } from "../../lib/db/src/index.js";
 import { desc, eq } from "drizzle-orm";
@@ -14,7 +15,25 @@ router.post("/orders", async (req, res) => {
   }
   try {
     const [order] = await db.insert(ordersTable).values(parsed.data).returning();
-    res.status(201).json(order);
+    if (order.email) {
+  try {
+    await sendOrderConfirmation({
+      id: order.id,
+      customerName: order.customerName,
+      email: order.email,
+      items: order.items as any[],
+      totalAmount: order.totalAmount,
+      paymentMethod: order.paymentMethod,
+      addressLine: order.addressLine,
+      city: order.city,
+      state: order.state,
+      pincode: order.pincode,
+    });
+  } catch (err) {
+    console.error("Failed to send email:", err);
+  }
+}
+res.status(201).json(order);
   } catch (err) {
     res.status(500).json({ error: "Failed to place order" });
   }
